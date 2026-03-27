@@ -1,4 +1,4 @@
-import { StarkZap, OnboardStrategy, type Token, type Address } from "starkzap";
+import { StarkZap, OnboardStrategy, Amount, type Token, type Address } from "starkzap";
 import type { Call } from "starknet";
 
 const USDC_TOKEN: Token = {
@@ -8,7 +8,7 @@ const USDC_TOKEN: Token = {
   symbol: "USDC",
 };
 const ARENA_CONTRACT = import.meta.env.VITE_ARENA_CONTRACT || "";
-const ENTRY_FEE = 1_000_000n; // 1 USDC (6 decimals)
+const ENTRY_FEE = Amount.parse("1", USDC_TOKEN); // 1 USDC
 
 let sdk: StarkZap | null = null;
 let wallet: Awaited<ReturnType<StarkZap["onboard"]>>["wallet"] | null = null;
