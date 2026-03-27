@@ -1,0 +1,24 @@
+node_modules/
+dist/
+
+# WASM artifacts (large binaries, downloaded via script)
+client/public/websockets-doom.js
+client/public/websockets-doom.wasm
+client/public/websockets-doom.wasm.map
+client/public/doom1.wad
+client/public/default.cfg
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+
+# Cairo build artifacts
+contracts/target/
+
+# OS
+.DS_Store

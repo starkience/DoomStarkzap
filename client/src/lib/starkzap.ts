@@ -1,0 +1,70 @@
+import { StarkZap, OnboardStrategy } from "starkzap";
+import type { Call } from "starknet";
+
+const USDC_ADDRESS = "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
+const ARENA_CONTRACT = import.meta.env.VITE_ARENA_CONTRACT || "";
+const ENTRY_FEE = 1_000_000n; // 1 USDC (6 decimals)
+
+let sdk: StarkZap | null = null;
+let wallet: Awaited<ReturnType<StarkZap["onboard"]>>["wallet"] | null = null;
+
+function getSDK(): StarkZap {
+  if (!sdk) {
+    sdk = new StarkZap({ network: "mainnet" });
+  }
+  return sdk;
+}
+
+export async function connectWallet(): Promise<{ address: string }> {
+  const s = getSDK();
+  const result = await s.onboard({
+    strategy: OnboardStrategy.Cartridge,
+    deploy: "if_needed",
+  });
+  wallet = result.wallet;
+  const address = await wallet.getAddress();
+  return { address };
+}
+
+export function getWallet() {
+  return wallet;
+}
+
+export async function getUSDCBalance(): Promise<string> {
+  if (!wallet) throw new Error("Wallet not connected");
+  const balance = await wallet.balanceOf(USDC_ADDRESS);
+  return balance.toFormatted();
+}
+
+export async function depositToArena(matchId: string): Promise<string> {
+  if (!wallet) throw new Error("Wallet not connected");
+  if (!ARENA_CONTRACT) throw new Error("Arena contract not configured");
+
+  const depositCall: Call = {
+    contractAddress: ARENA_CONTRACT,
+    entrypoint: "deposit",
+    calldata: [matchId],
+  };
+
+  const txHash = await wallet
+    .tx()
+    .approve(USDC_ADDRESS, ARENA_CONTRACT, ENTRY_FEE)
+    .add(depositCall)
+    .send();
+
+  return txHash;
+}
+
+export async function withdrawFromArena(matchId: string): Promise<string> {
+  if (!wallet) throw new Error("Wallet not connected");
+  if (!ARENA_CONTRACT) throw new Error("Arena contract not configured");
+
+  const withdrawCall: Call = {
+    contractAddress: ARENA_CONTRACT,
+    entrypoint: "withdraw",
+    calldata: [matchId],
+  };
+
+  const txHash = await wallet.tx().add(withdrawCall).send();
+  return txHash;
+}
