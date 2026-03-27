@@ -1,4 +1,4 @@
-import { StarkZap, OnboardStrategy } from "starkzap";
+import { StarkZap, OnboardStrategy, fromAddress } from "starkzap";
 import type { Call } from "starknet";
 
 const USDC_ADDRESS = "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
@@ -22,7 +22,7 @@ export async function connectWallet(): Promise<{ address: string }> {
     deploy: "if_needed",
   });
   wallet = result.wallet;
-  const address = await wallet.getAddress();
+  const address = wallet.address;
   return { address };
 }
 
@@ -32,7 +32,8 @@ export function getWallet() {
 
 export async function getUSDCBalance(): Promise<string> {
   if (!wallet) throw new Error("Wallet not connected");
-  const balance = await wallet.balanceOf(USDC_ADDRESS);
+  const usdcToken = fromAddress(USDC_ADDRESS);
+  const balance = await wallet.balanceOf(usdcToken);
   return balance.toFormatted();
 }
 
@@ -40,19 +41,21 @@ export async function depositToArena(matchId: string): Promise<string> {
   if (!wallet) throw new Error("Wallet not connected");
   if (!ARENA_CONTRACT) throw new Error("Arena contract not configured");
 
+  const usdcToken = fromAddress(USDC_ADDRESS);
+
   const depositCall: Call = {
     contractAddress: ARENA_CONTRACT,
     entrypoint: "deposit",
     calldata: [matchId],
   };
 
-  const txHash = await wallet
+  const tx = await wallet
     .tx()
-    .approve(USDC_ADDRESS, ARENA_CONTRACT, ENTRY_FEE)
+    .approve(usdcToken, ARENA_CONTRACT, ENTRY_FEE)
     .add(depositCall)
     .send();
 
-  return txHash;
+  return String(tx);
 }
 
 export async function withdrawFromArena(matchId: string): Promise<string> {
@@ -65,6 +68,6 @@ export async function withdrawFromArena(matchId: string): Promise<string> {
     calldata: [matchId],
   };
 
-  const txHash = await wallet.tx().add(withdrawCall).send();
-  return txHash;
+  const tx = await wallet.tx().add(withdrawCall).send();
+  return String(tx);
 }

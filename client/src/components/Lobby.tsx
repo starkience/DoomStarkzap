@@ -30,7 +30,6 @@ export function Lobby({
   const [depositing, setDepositing] = useState(false);
   const me = players.find((p) => p.nickname === nickname);
   const isCreator = players.length > 0 && players[0].nickname === nickname;
-  const allDeposited = players.length === 2 && players.every((p) => p.deposited);
 
   const handleDeposit = async () => {
     setDepositing(true);
