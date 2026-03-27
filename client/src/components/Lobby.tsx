@@ -30,6 +30,7 @@ export function Lobby({
   const [depositing, setDepositing] = useState(false);
   const me = players.find((p) => p.nickname === nickname);
   const isCreator = players.length > 0 && players[0].nickname === nickname;
+  const isTestMode = me?.walletAddress?.startsWith("0x") && (me.walletAddress.length ?? 0) < 20;
 
   const handleDeposit = async () => {
     setDepositing(true);
@@ -105,8 +106,8 @@ export function Lobby({
       {error && <div className="error-msg">{error}</div>}
 
       <div className="lobby-actions">
-        {/* Deposit button */}
-        {!me?.deposited && players.length === 2 && (
+        {/* Deposit button (only if real wallets connected) */}
+        {!me?.deposited && players.length === 2 && !isTestMode && (
           <button
             className="btn btn-primary"
             onClick={handleDeposit}
@@ -116,21 +117,15 @@ export function Lobby({
           </button>
         )}
 
-        {/* Start button (creator only, after match locked) */}
-        {isCreator && matchLocked && (
+        {/* Start button — creator can start when 2 players are in */}
+        {isCreator && players.length >= 1 && (
           <button className="btn btn-primary" onClick={onStartGame}>
-            START GAME
+            START GAME ({players.length} PLAYER{players.length > 1 ? "S" : ""})
           </button>
         )}
 
-        {/* Waiting states */}
-        {me?.deposited && !matchLocked && (
-          <button className="btn btn-secondary" disabled>
-            WAITING FOR OPPONENT DEPOSIT...
-          </button>
-        )}
-
-        {!isCreator && matchLocked && (
+        {/* Waiting for host */}
+        {!isCreator && players.length === 2 && (
           <button className="btn btn-secondary" disabled>
             WAITING FOR HOST TO START...
           </button>

@@ -163,8 +163,6 @@ export function toggleReady(room: RoomInfo, nickname: string): boolean {
 
 export function canStart(room: RoomInfo, nickname: string): { ok: boolean; error?: string } {
   if (room.creatorNickname !== nickname) return { ok: false, error: "Only the room creator can start" };
-  if (room.players.size < 2) return { ok: false, error: "Need 2 players" };
-  if (!room.matchLocked) return { ok: false, error: "Both players must deposit first" };
   return { ok: true };
 }
 

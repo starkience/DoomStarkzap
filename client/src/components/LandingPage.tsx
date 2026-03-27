@@ -9,6 +9,7 @@ interface Props {
   walletConnecting: boolean;
   walletBalance: string | null;
   onConnectWallet: () => void;
+  onSkipWallet: () => void;
 }
 
 const ADJECTIVES = [
@@ -36,6 +37,7 @@ export function LandingPage({
   walletConnecting,
   walletBalance,
   onConnectWallet,
+  onSkipWallet,
 }: Props) {
   const [nickname, setNickname] = useState(randomName());
   const [mode, setMode] = useState<"menu" | "join">("menu");
@@ -50,7 +52,8 @@ export function LandingPage({
     }
   }, []);
 
-  const canAct = !!walletAddress && !!nickname.trim();
+  const effectiveAddress = walletAddress || "0x0";
+  const canAct = !!nickname.trim();
 
   return (
     <div className="landing">
@@ -62,14 +65,23 @@ export function LandingPage({
 
       {/* Wallet Connection */}
       {!walletAddress ? (
-        <button
-          className="btn btn-primary"
-          onClick={onConnectWallet}
-          disabled={walletConnecting}
-          style={{ width: "100%" }}
-        >
-          {walletConnecting ? "CONNECTING..." : "CONNECT WALLET"}
-        </button>
+        <div className="wallet-buttons">
+          <button
+            className="btn btn-primary"
+            onClick={onConnectWallet}
+            disabled={walletConnecting}
+            style={{ width: "100%" }}
+          >
+            {walletConnecting ? "CONNECTING..." : "CONNECT WALLET"}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={onSkipWallet}
+            style={{ width: "100%", fontSize: "0.5rem" }}
+          >
+            PLAY WITHOUT WALLET (TEST MODE)
+          </button>
+        </div>
       ) : (
         <div className="wallet-info">
           <span className="wallet-address">{truncatedAddress}</span>
@@ -77,77 +89,73 @@ export function LandingPage({
         </div>
       )}
 
-      {walletAddress && (
-        <>
+      <div className="form-group">
+        <label>YOUR NAME</label>
+        <div className="name-input">
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value.replace(/[^0-9a-zA-Z \-!]/g, ""))}
+            maxLength={20}
+            placeholder="Enter your name"
+          />
+          <button className="btn-small" onClick={() => setNickname(randomName())}>
+            &#x21bb;
+          </button>
+        </div>
+      </div>
+
+      <div className="entry-fee-info">
+        ENTRY FEE: 1 USDC | BOUNTY: $0.10/KILL
+      </div>
+
+      {error && <div className="error-msg">{error}</div>}
+
+      {mode === "menu" ? (
+        <div className="buttons">
+          <button
+            className="btn btn-primary"
+            onClick={() => canAct && onCreateRoom(nickname.trim(), effectiveAddress)}
+            disabled={!canAct}
+          >
+            CREATE ROOM
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setMode("join")}
+            disabled={!canAct}
+          >
+            JOIN ROOM
+          </button>
+        </div>
+      ) : (
+        <div className="join-form">
           <div className="form-group">
-            <label>YOUR NAME</label>
-            <div className="name-input">
-              <input
-                type="text"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value.replace(/[^0-9a-zA-Z \-!]/g, ""))}
-                maxLength={20}
-                placeholder="Enter your name"
-              />
-              <button className="btn-small" onClick={() => setNickname(randomName())}>
-                &#x21bb;
-              </button>
-            </div>
+            <label>ROOM CODE</label>
+            <input
+              type="text"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+              maxLength={6}
+              placeholder="ABCD23"
+              autoFocus
+            />
           </div>
-
-          <div className="entry-fee-info">
-            ENTRY FEE: 1 USDC | BOUNTY: $0.10/KILL
+          <div className="buttons">
+            <button
+              className="btn btn-primary"
+              onClick={() =>
+                roomCode.length === 6 && canAct && onJoinRoom(roomCode, nickname.trim(), effectiveAddress)
+              }
+              disabled={roomCode.length !== 6 || !canAct}
+            >
+              JOIN
+            </button>
+            <button className="btn btn-secondary" onClick={() => setMode("menu")}>
+              BACK
+            </button>
           </div>
-
-          {error && <div className="error-msg">{error}</div>}
-
-          {mode === "menu" ? (
-            <div className="buttons">
-              <button
-                className="btn btn-primary"
-                onClick={() => canAct && onCreateRoom(nickname.trim(), walletAddress)}
-                disabled={!canAct}
-              >
-                CREATE ROOM
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setMode("join")}
-                disabled={!canAct}
-              >
-                JOIN ROOM
-              </button>
-            </div>
-          ) : (
-            <div className="join-form">
-              <div className="form-group">
-                <label>ROOM CODE</label>
-                <input
-                  type="text"
-                  value={roomCode}
-                  onChange={(e) => setRoomCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-                  maxLength={6}
-                  placeholder="ABCD23"
-                  autoFocus
-                />
-              </div>
-              <div className="buttons">
-                <button
-                  className="btn btn-primary"
-                  onClick={() =>
-                    roomCode.length === 6 && canAct && onJoinRoom(roomCode, nickname.trim(), walletAddress)
-                  }
-                  disabled={roomCode.length !== 6 || !canAct}
-                >
-                  JOIN
-                </button>
-                <button className="btn btn-secondary" onClick={() => setMode("menu")}>
-                  BACK
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+        </div>
       )}
     </div>
   );

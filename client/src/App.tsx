@@ -52,6 +52,12 @@ export default function App() {
     nicknameMatchResult = { winner: winnerNick, balances: mapped };
   }
 
+  const handleSkipWallet = useCallback(() => {
+    // Test mode: generate a dummy address so gameplay works without a real wallet
+    const dummy = "0x" + Math.random().toString(16).slice(2, 18);
+    wallet.setTestAddress(dummy);
+  }, [wallet]);
+
   return (
     <div className="app">
       {screen === "landing" && (
@@ -64,6 +70,7 @@ export default function App() {
           walletConnecting={wallet.connecting}
           walletBalance={wallet.balance}
           onConnectWallet={wallet.connect}
+          onSkipWallet={handleSkipWallet}
         />
       )}
       {screen === "lobby" && lobby.roomId && lobby.nickname && lobby.matchId && (

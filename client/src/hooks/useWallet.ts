@@ -58,6 +58,11 @@ export function useWallet() {
     }
   }, []);
 
+  const setTestAddress = useCallback((addr: string) => {
+    setAddress(addr);
+    setBalance("TEST MODE");
+  }, []);
+
   const truncatedAddress = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : null;
@@ -71,6 +76,7 @@ export function useWallet() {
     connect,
     deposit,
     withdraw,
+    setTestAddress,
     isConnected: !!address,
   };
 }
