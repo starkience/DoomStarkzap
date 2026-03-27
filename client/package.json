@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "download-wasm": "cd public && curl -sLO https://doom.moparisthe.best/websockets-doom.js && curl -sLO https://doom.moparisthe.best/websockets-doom.wasm && curl -sLO https://doom.moparisthe.best/default.cfg && curl -sLO https://doom.moparisthe.best/doom1.wad && echo 'WASM files downloaded'",
+    "build": "npm run download-wasm && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
