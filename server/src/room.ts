@@ -63,7 +63,7 @@ export function joinRoom(
 ): { room: RoomInfo; player: Player } | { error: string } {
   const room = rooms.get(roomId);
   if (!room) return { error: "Room not found" };
-  if (room.state !== "WAITING") return { error: "Game already in progress" };
+  if (room.state === "ENDED") return { error: "Game has ended" };
   if (room.players.size >= MAX_PLAYERS) return { error: "Room is full (max 2 players)" };
   if (room.players.has(nickname)) return { error: "Nickname already taken in this room" };
 

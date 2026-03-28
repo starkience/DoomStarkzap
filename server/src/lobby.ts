@@ -118,6 +118,16 @@ async function handleMessage(ws: WebSocket, msg: LobbyClientMsg): Promise<void> 
           deposited: result.player.deposited,
         },
       }, ws);
+
+      // If game is already playing, immediately send GAME_STARTING to the joiner
+      if (result.room.state === "PLAYING") {
+        send(ws, {
+          type: "GAME_STARTING",
+          wsPath: `/ws/${result.room.id}`,
+          playerIndex: result.player.index,
+          playerCount: result.room.players.size,
+        });
+      }
       break;
     }
 
