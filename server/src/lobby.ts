@@ -78,17 +78,6 @@ async function handleMessage(ws: WebSocket, msg: LobbyClientMsg): Promise<void> 
       }
       const room = createRoom(nickname, ws, msg.walletAddress);
 
-      // Create match on-chain if starknet is ready
-      if (isStarknetReady() && room.matchId) {
-        try {
-          const txHash = await createMatchOnChain(room.matchId);
-          await waitForTx(txHash);
-          console.log(`[lobby] Match ${room.matchId} created on-chain`);
-        } catch (err) {
-          console.error("[lobby] Failed to create match on-chain:", err);
-        }
-      }
-
       wsToRoom.set(ws, { roomId: room.id, nickname });
       send(ws, {
         type: "ROOM_CREATED",
